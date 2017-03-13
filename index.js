@@ -1,40 +1,65 @@
 import React, {Component } from 'react';
-import { StyleSheet, Text, View} from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
 
 const styles = StyleSheet.create({
     row: {
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
     },
     pad: {
         flex: 1,
-        margin: 20,
+        justifyContent: 'center',
+    },
+    headerPad: {
+        margin: 10,
+    },
+    keyPad: {
+        margin: 10,
     },
     btn: {
-        fontFamily: 'Droid Sans Mono',
-        fontSize: 50,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 10,
-        paddingHorizontal: 35,
+        fontFamily: 'Helvetica Light',
+        fontSize: 25,
+        color: 'white',
+    },
+    clearBtn: {
+        fontFamily: 'Helvetica Light',
+        fontSize: 17,
+        color: 'white',
+    },
+    header: {
+        fontFamily: 'Helvetica Light',
+        fontSize: 15,
+        color: 'white',
         textAlign: 'center',
         margin: 10,
     },
-    header: {
-        fontSize: 30,
-        fontWeight: '500',
-    },
     pin: {
-        fontFamily: 'Droid Sans Mono',
-        fontSize: 40,
+        fontSize: 15,
         fontWeight: '500',
+        color: 'white',
     },
-
+    circle: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: 10,
+        borderRadius: 30,
+        width: 60,
+        height: 60,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.5)',
+    },
+    invisibleCircle: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: 10,
+        borderRadius: 30,
+        width: 60,
+        height: 60,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.0)',
+    },
 });
-
-const MAX_LENGTH = 6;
 
 function makeDots(num) {
     let ret = '';
@@ -46,7 +71,30 @@ function makeDots(num) {
 }
 
 export default class Pin extends Component {
-    state = {value: ''};
+    state = {
+        value: '', 
+        pinLength: 5,
+        clearVisible: true,
+        deleteVisible: true,
+        prompt: "Enter passcode",
+    };
+
+    constructor(props) {
+        super(props);
+
+        if (props.pinLength != undefined) {
+            this.state.pinLength = props.pinLength;
+        }
+        if (props.clearVisible != undefined) {
+            this.state.clearVisible = props.clearVisible;
+        }
+        if (props.deleteVisible != undefined) {
+            this.state.deleteVisible = props.deleteVisible;
+        }
+        if (props.prompt != undefined) {
+            this.state.prompt = props.prompt;
+        }
+    }
 
     handleClear() {
         this.setState({value: ''});
@@ -54,13 +102,14 @@ export default class Pin extends Component {
 
     handlePress(num) {
         let {value} = this.state;
-        value += String(num);
+        if (value.length < this.state.pinLength) {
+            value += String(num);
 
-        this.setState({value});
+            this.setState({value});
 
-        if (value.length == MAX_LENGTH) {
-            this.props.onSubmit(value);
-            this.props.onDone();
+            if (value.length == this.state.pinLength) {
+                this.props.onPinEntered(value);
+            }
         }
     }
 
@@ -70,49 +119,72 @@ export default class Pin extends Component {
     }
 
     renderButton(num) {
-        return (<Text onPress={()=> this.handlePress(num)}
+        return (<TouchableOpacity onPress={()=> this.handlePress(num)} style={styles.circle}><Text
                       style={styles.btn}>{num}
-        </Text>);
+        </Text></TouchableOpacity>);
+    }
+
+    buildClearButton() {
+        if (this.state.clearVisible) {
+            return <TouchableOpacity style={styles.invisibleCircle} onPress={()=> this.handleClear()}><Text style={styles.clearBtn}>Clear</Text></TouchableOpacity>;
+        } else {
+            return <TouchableOpacity style={styles.invisibleCircle} />;
+        }
+    }
+
+    buildDeleteButton() {
+        if (this.state.deleteVisible) {
+            return <TouchableOpacity style={styles.invisibleCircle} onPress={()=> this.handleRemove()}><Text style={styles.clearBtn}>Delete</Text></TouchableOpacity>;
+        } else {
+            return <TouchableOpacity style={styles.invisibleCircle} />;
+        }
     }
 
     render() {
         const {value} = this.state;
         const marks = value.replace(/./g, ' ● ');
-        const dots = makeDots(MAX_LENGTH - value.length);
-        console.log("Rendering pin view");
+        const dots = makeDots(this.state.pinLength - value.length);
+        const clearButton = this.buildClearButton();
+        const deleteButton = this.buildDeleteButton();
 
-        return (<View style={styles.pad} >
-            <Text style={styles.header} >
-                Enter pin:
-            </Text>
+        return (
+            <View style={styles.pad} >
+                <View style={styles.headerPad}>
+                    <Text style={styles.header} >
+                        {this.state.prompt}
+                    </Text>
 
-            <View style={styles.row} >
-                <Text style={styles.pin} >{marks}{dots}</Text>
+                    <View style={styles.row} >
+                        <Text style={styles.pin} >{marks}{dots}</Text>
+                    </View>
+                </View>
+
+                <View style={styles.keyPad}>
+                    <View style={styles.row} >
+                        {this.renderButton(1)}
+                        {this.renderButton(2)}
+                        {this.renderButton(3)}
+                    </View>
+
+                    <View style={styles.row} >
+                        {this.renderButton(4)}
+                        {this.renderButton(5)}
+                        {this.renderButton(6)}
+                    </View>
+
+                    <View style={styles.row} >
+                        {this.renderButton(7)}
+                        {this.renderButton(8)}
+                        {this.renderButton(9)}
+                    </View>
+
+                    <View style={styles.row} >
+                        {clearButton}
+                        {this.renderButton(0)}
+                        {deleteButton}
+                    </View>
+                </View>
             </View>
-
-            <View style={styles.row} >
-                {this.renderButton(1)}
-                {this.renderButton(2)}
-                {this.renderButton(3)}
-            </View>
-
-            <View style={styles.row} >
-                {this.renderButton(4)}
-                {this.renderButton(5)}
-                {this.renderButton(6)}
-            </View>
-
-            <View style={styles.row} >
-                {this.renderButton(7)}
-                {this.renderButton(8)}
-                {this.renderButton(9)}
-            </View>
-
-            <View style={styles.row} >
-                <Text onPress={()=> this.handleClear()} style={styles.btn}>C</Text>
-                {this.renderButton(0)}
-                <Text onPress={()=> this.handleRemove()} style={styles.btn}>{'<'}</Text>
-            </View>
-        </View>);
+        );
     }
 }

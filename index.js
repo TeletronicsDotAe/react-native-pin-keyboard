@@ -79,6 +79,7 @@ export default class Pin extends Component {
         const {value} = this.state;
         const marks = value.replace(/./g, ' ● ');
         const dots = makeDots(MAX_LENGTH - value.length);
+        console.log("Rendering pin view");
 
         return (<View style={styles.pad} >
             <Text style={styles.header} >

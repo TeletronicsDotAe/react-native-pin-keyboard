@@ -76,6 +76,7 @@ export default class Pin extends Component {
         pinLength: 5,
         clearVisible: true,
         deleteVisible: true,
+        clearPinOnComplete: true,
         prompt: "Enter passcode",
     };
 
@@ -94,6 +95,9 @@ export default class Pin extends Component {
         if (props.prompt != undefined) {
             this.state.prompt = props.prompt;
         }
+        if (props.clearPinOnComplete != undefined) {
+            this.state.clearPinOnComplete = props.clearPinOnComplete;
+        }
     }
 
     handleClear() {
@@ -109,6 +113,10 @@ export default class Pin extends Component {
 
             if (value.length == this.state.pinLength) {
                 this.props.onPinEntered(value);
+
+                if (this.state.clearPinOnComplete) {
+                    this.handleClear();
+                }
             }
         }
     }

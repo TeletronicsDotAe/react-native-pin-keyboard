@@ -71,95 +71,74 @@ function makeDots(num) {
 }
 
 export default class Pin extends Component {
-    state = {
-        value: '', 
+    defaultProps = {
         pinLength: 5,
+        prompt: "Enter passcode",
         clearVisible: true,
         deleteVisible: true,
-        clearPinOnComplete: true,
-        prompt: "Enter passcode",
-    };
-
-    constructor(props) {
-        super(props);
-
-        if (props.pinLength != undefined) {
-            this.state.pinLength = props.pinLength;
-        }
-        if (props.clearVisible != undefined) {
-            this.state.clearVisible = props.clearVisible;
-        }
-        if (props.deleteVisible != undefined) {
-            this.state.deleteVisible = props.deleteVisible;
-        }
-        if (props.prompt != undefined) {
-            this.state.prompt = props.prompt;
-        }
-        if (props.clearPinOnComplete != undefined) {
-            this.state.clearPinOnComplete = props.clearPinOnComplete;
-        }
-    }
-
-    handleClear() {
-        this.setState({value: ''});
     }
 
     handlePress(num) {
-        let {value} = this.state;
-        if (value.length < this.state.pinLength) {
-            value += String(num);
+        const pinLength = this.props.pinLength ? this.props.pinLength : this.defaultProps.pinLength;
+        let pinCode = this.props.pinCode;
 
-            this.setState({value});
+        if (pinCode.length < pinLength) {
+            pinCode += String(num);
 
-            if (value.length == this.state.pinLength) {
-                this.props.onPinEntered(value);
-
-                if (this.state.clearPinOnComplete) {
-                    this.handleClear();
-                }
-            }
+            this.doCallback(pinCode);
         }
     }
 
-    handleRemove() {
-        const {value} = this.state;
-        this.setState({value: value.substr(0, value.length - 1)});
+    doCallback(pincode) {
+        this.props.onPinEntered(pincode);
+    }
+
+    doClear() {
+        this.doCallback('');
+    }
+
+    doDelete() {
+        const pinCode = this.props.pinCode;
+        this.doCallback(pinCode.substr(0, pinCode.length - 1));
     }
 
     renderButton(num) {
-        return (<TouchableOpacity onPress={()=> this.handlePress(num)} style={styles.circle}><Text
-                      style={styles.btn}>{num}
-        </Text></TouchableOpacity>);
+        return (
+            <TouchableOpacity onPress={()=> this.handlePress(num)} style={styles.circle}>
+                <Text style={styles.btn}>{num}</Text>
+            </TouchableOpacity>
+        );
     }
 
-    buildClearButton() {
-        if (this.state.clearVisible) {
-            return <TouchableOpacity style={styles.invisibleCircle} onPress={()=> this.handleClear()}><Text style={styles.clearBtn}>Clear</Text></TouchableOpacity>;
-        } else {
-            return <TouchableOpacity style={styles.invisibleCircle} />;
-        }
-    }
-
-    buildDeleteButton() {
-        if (this.state.deleteVisible) {
-            return <TouchableOpacity style={styles.invisibleCircle} onPress={()=> this.handleRemove()}><Text style={styles.clearBtn}>Delete</Text></TouchableOpacity>;
+    buildButton(isVisible, text, clickHandler) {
+        if (isVisible) {
+            return <TouchableOpacity style={styles.invisibleCircle} onPress={clickHandler}><Text style={styles.clearBtn}>{text}</Text></TouchableOpacity>;
         } else {
             return <TouchableOpacity style={styles.invisibleCircle} />;
         }
     }
 
     render() {
-        const {value} = this.state;
-        const marks = value.replace(/./g, ' ● ');
-        const dots = makeDots(this.state.pinLength - value.length);
-        const clearButton = this.buildClearButton();
-        const deleteButton = this.buildDeleteButton();
+        // Extract props
+        const pinCode = this.props.pinCode;
+        const pinLength = this.props.pinLength ? this.props.pinLength : this.defaultProps.pinLength;
+        const prompt = this.props.prompt ? this.props.prompt : this.defaultProps.prompt;
+        const clearVisible = this.props.clearVisible ? this.props.clearVisible : this.defaultProps.clearVisible;
+        const deleteVisible = this.props.deleteVisible ? this.props.deleteVisible : this.defaultProps.deleteVisible;
+
+        // Format the pincode for display
+        const marks = pinCode.replace(/./g, ' ● ');
+        const dots = makeDots(pinLength - pinCode.length);
+
+        // Build buttons
+        const clearButton = this.buildButton(clearVisible, "Clear", () => this.doClear());
+        const deleteButton = this.buildButton(deleteVisible, "Delete", () => this.doDelete());
 
         return (
             <View style={styles.pad} >
                 <View style={styles.headerPad}>
                     <Text style={styles.header} >
-                        {this.state.prompt}
+                        {prompt}
                     </Text>
 
                     <View style={styles.row} >

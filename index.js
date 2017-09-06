@@ -71,7 +71,7 @@ function makeDots(num) {
 }
 
 export default class Pin extends Component {
-    defaultProps = {
+    static defaultProps = {
         pinLength: 5,
         prompt: "Enter passcode",
         clearVisible: true,
